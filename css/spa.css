@@ -31,14 +31,13 @@ body {
 a {
   text-decoration: none;
 }
+  a:link, a:visited {
+    color: inherit;
+  }
 
-a:link, a:visited {
-  color: inherit;
-}
-
-a:hover {
-  text-decoration: underline;
-}
+  a:hover {
+    text-decoration: underline;
+  }
 
 strong {
   font-weight: 800;
