@@ -147,7 +147,7 @@ spa.shell = (function() {
       _s_chat_previous = anchor_map_previous._s_chat;
       _s_chat_proposed = anchor_map_proposed._s_chat;
 
-      if (!anchor_map_previous || _s_chat_previous !== !s_chat_proposed) {
+      if (!anchor_map_previous || _s_chat_previous !== _s_chat_proposed) {
         s_chat_proposed = anchor_map_proposed.chat;
         switch (s_chat_proposed) {
           case 'open':
