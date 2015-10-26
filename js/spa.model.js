@@ -22,7 +22,8 @@ spa.model = (function() {
     cid_serial: 0,
     people_cid_map: {},
     people_db: TAFFY(),
-    user: null
+    user: null,
+    is_connected: false
   };
 
   var isFakeData = true;
@@ -34,6 +35,7 @@ spa.model = (function() {
       makePerson,
       removePerson,
       people,
+      chat,
       initModule;
 
   personProto = {
@@ -66,6 +68,7 @@ spa.model = (function() {
     stateMap.user.id = user_map._id;
     stateMap.user.css_map = user_map.css_map;
     stateMap.people_cid_map[user_map._id] = stateMap.user;
+    chat.join();
 
     $.gevent.publish('spa-login', [stateMap.user]);
   };
@@ -154,6 +157,7 @@ spa.model = (function() {
       var is_removed,
           user = stateMap.user;
 
+      chat._leave();
       is_removed = removePerson(user);
       stateMap.user = stateMap.anon_user;
 
@@ -171,11 +175,166 @@ spa.model = (function() {
     };
   }());
 
-  initModule = function() {
-    var i,
-        people_list,
-        person_map;
+  chat = (function() {
+    var _publish_listchange,
+        _publish_updatechat,
+        _update_list,
+        _leave_chat,
+        get_chatee,
+        join_chat,
+        send_msg,
+        set_chatee,
+        chatee = null;
 
+
+    _update_list = function(arg_list) {
+      var people_list = arg_list[0],
+          is_chatee_online = false;
+
+      clearPeopleDb();
+
+      people_list.forEach(function(person_map) {
+        var make_person_map;
+
+        if (!person_map.name) {
+          return;
+        }
+
+        if (stateMap.user && stateMap.user.id === person_map._id) {
+          stateMap.user.css_map = person_map.css_map;
+          return;
+        }
+
+        make_person_map = {
+          cid: person_map._id,
+          css_map: person_map.css_map,
+          id: person_map._id,
+          name: person_map.name
+        };
+
+        if (chatee && chatee.id === make_person_map.id) {
+          is_chatee_online = true;
+        }
+
+        makePerson(make_person_map);
+      });
+
+      stateMap.people_db.sort('name');
+
+      if (chatee && !is_chatee_online) {
+        set_chatee('');
+      }
+    };
+
+    _publish_listchange = function(arg_list) {
+      _update_list(arg_list);
+      $.gevent.publish('spa-listchange', [arg_list]);
+    };
+
+    _publish_updatechat = function(arg_list) {
+      var msg_map = arg_list[0];
+
+      if (!chatee) {
+        set_chatee(msg_map.sender_id);
+      } else if (msg_map.sender_id !== stateMap.user.id && msg_map.sender_id !== chatee.id) {
+        set_chatee(msg_map.sender_id);
+      }
+
+      $.gevent.publish('spa-updatechat', [msg_map]);
+    }
+
+    _leave_chat = function() {
+      var sio = isFakeData ? spa.fake.mockSio : spa.data.getSio();
+
+      chatee = null;
+      stateMap.is_connected = false;
+
+      if (sio) {
+        sio.emit('leavechat');
+      }
+    };
+
+    get_chatee = function() {
+      return chatee;
+    };
+
+    join_chat = function() {
+      var sio;
+
+      if (stateMap.is_connected) {
+        return false;
+      }
+
+      if (stateMap.user.get_is_anon()) {
+        console.warn('User must be defined before joining chat');
+        return false;
+      }
+
+      sio = isFakeData ? spa.fake.mockSio : spa.data.getSio();
+
+      sio.on('listchange', _publish_listchange);
+      sio.on('updatechat', _publish_updatechat);
+      stateMap.is_connected = true;
+
+      return true;
+    };
+
+    send_msg = function(msg_text) {
+      var msg_map,
+          sio = isFakeData ? sap.fake.mockSio : spa.data.getSio();
+
+      if (!sio) {
+        return false;
+      }
+
+      if (!(stateMap.user && chatee)) {
+        return false;
+      }
+
+      msg_map = {
+        dest_id: chatee.id,
+        dest_name: chatee.name,
+        sender_id: stateMap.user.id,
+        msg_text: msg_text
+      };
+
+      _publish_updatechat([msg_map]);
+      sio.emit('updatechat', msg_map);
+      return true;
+    };
+
+    set_chatee = function(person_id) {
+      var new_chatee;
+
+      new_chatee = stateMap.people_cid_map[person_id];
+
+      if (new_chatee) {
+        if (chatee && chatee.id === new_chatee.id) {
+          return false;
+        }
+      } else {
+        new_chatee = null;
+      }
+
+      $.gevent.publish('spa-setchatee', {
+        old_chatee: chatee,
+        new_chatee: new_chatee
+      });
+
+      chatee = new_chatee;
+      return true;
+    };
+
+    return {
+      _leave: _leave_chat,
+      get_chatee: get_chatee,
+      join: join_chat,
+      send_msg: send_msg,
+      set_chatee: set_chatee
+    };
+  }());
+
+  initModule = function() {
     stateMap.anon_user = makePerson({
       cid: configMap.anon_id,
       id: configMap.anon_id,
@@ -183,23 +342,11 @@ spa.model = (function() {
     });
 
     stateMap.user = stateMap.anon_user;
-
-    if (isFakeData) {
-      people_list = spa.fake.getPeopleList();
-
-      people_list.forEach(function(person_map) {
-        makePerson({
-          cid: person_map._id,
-          css_map: person_map.css_map,
-          id: person_map._id,
-          name: person_map.name
-        });
-      });
-    }
   }
 
   return {
     initModule: initModule,
+    chat: chat,
     people: people
   };
 })();
