@@ -1,7 +1,7 @@
 /*
-* spa.model.js
-* Model module
-*/
+ * spa.model.js
+ * Model module
+ */
 /*jslint browser : true, continue : true,
 devel : true, indent : 2, maxerr : 50,
 newcap : true, nomen : true, plusplus : true,
@@ -29,14 +29,14 @@ spa.model = (function() {
   var isFakeData = true;
 
   var personProto,
-      makeCid,
-      clearPeopleDb,
-      completeLogin,
-      makePerson,
-      removePerson,
-      people,
-      chat,
-      initModule;
+    makeCid,
+    clearPeopleDb,
+    completeLogin,
+    makePerson,
+    removePerson,
+    people,
+    chat,
+    initModule;
 
   personProto = {
     get_is_user: function() {
@@ -64,7 +64,7 @@ spa.model = (function() {
   completeLogin = function(user_list) {
     var user_map = user_list[0];
     delete stateMap.people_cid_map[user_map.cid];
-    stateMap.user.cd = user_map._id;
+    stateMap.user.cid = user_map._id;
     stateMap.user.id = user_map._id;
     stateMap.user.css_map = user_map.css_map;
     stateMap.people_cid_map[user_map._id] = stateMap.user;
@@ -82,7 +82,9 @@ spa.model = (function() {
       return false;
     }
 
-    stateMap.people_db({cid: people.cid}).remove();
+    stateMap.people_db({
+      cid: people.cid
+    }).remove();
     if (person.cid) {
       delete stateMap.people_cid_map[person.cid];
     }
@@ -92,10 +94,10 @@ spa.model = (function() {
 
   makePerson = function(person_map) {
     var person,
-        cid = person_map.cid,
-        css_map = person_map.css_map,
-        id = person_map.id,
-        name = person_map.name;
+      cid = person_map.cid,
+      css_map = person_map.css_map,
+      id = person_map.id,
+      name = person_map.name;
 
     if (cid === undefined || !name) {
       throw new Error('client id and name required');
@@ -113,15 +115,15 @@ spa.model = (function() {
     stateMap.people_cid_map[cid] = person;
     stateMap.people_db.insert(person);
 
-    return person
+    return person;
   };
 
   people = (function() {
     var get_db,
-        get_user,
-        get_by_cid,
-        login,
-        logout;
+      get_user,
+      get_by_cid,
+      login,
+      logout;
 
     get_by_cid = function(cid) {
       return stateMap.people_cid_map[cid];
@@ -140,7 +142,11 @@ spa.model = (function() {
 
       stateMap.user = makePerson({
         cid: makeCid(),
-        css_map: {top: 25, left: 25, 'background-color': '#8f8'},
+        css_map: {
+          top: 25,
+          left: 25,
+          'background-color': '#8f8'
+        },
         name: name
       });
 
@@ -154,16 +160,13 @@ spa.model = (function() {
     };
 
     logout = function() {
-      var is_removed,
-          user = stateMap.user;
+      var user = stateMap.user;
 
       chat._leave();
-      is_removed = removePerson(user);
       stateMap.user = stateMap.anon_user;
+      clearPeopleDb();
 
       $.gevent.publish('spa-logout', [user]);
-
-      return is_removed;
     };
 
     return {
@@ -177,54 +180,52 @@ spa.model = (function() {
 
   chat = (function() {
     var _publish_listchange,
-        _publish_updatechat,
-        _update_list,
-        _leave_chat,
-        get_chatee,
-        join_chat,
-        send_msg,
-        set_chatee,
-        update_avatar,
-        chatee = null;
+      _publish_updatechat,
+      _update_list,
+      _leave_chat,
+      get_chatee,
+      join_chat,
+      send_msg,
+      set_chatee,
+      update_avatar,
+      chatee = null;
 
 
     _update_list = function(arg_list) {
-      var people_list = arg_list[0],
-          is_chatee_online = false;
-
+      var i, person_map, make_person_map, person,
+        people_list = arg_list[0],
+        is_chatee_online = false;
       clearPeopleDb();
+      PERSON:
+        for (i = 0; i < people_list.length; i++) {
+          person_map = people_list[i];
+          if (!person_map.name) {
+            continue PERSON;
+          }
+          // if user defined, update css_map and skip remainder
+          if (stateMap.user && stateMap.user.id === person_map._id) {
+            stateMap.user.css_map = person_map.css_map;
+            continue PERSON;
+          }
+          make_person_map = {
+            cid: person_map._id,
+            css_map: person_map.css_map,
+            id: person_map._id,
+            name: person_map.name
+          };
+          person = makePerson(make_person_map);
 
-      people_list.forEach(function(person_map) {
-        var make_person_map;
+          if (chatee && chatee.id === make_person_map.id) {
+            is_chatee_online = true;
+            chatee = person;
+          }
 
-        if (!person_map.name) {
-          return;
+          stateMap.people_db.sort('name');
+
+          if (chatee && !is_chatee_online) {
+            set_chatee('');
+          }
         }
-
-        if (stateMap.user && stateMap.user.id === person_map._id) {
-          stateMap.user.css_map = person_map.css_map;
-          return;
-        }
-
-        make_person_map = {
-          cid: person_map._id,
-          css_map: person_map.css_map,
-          id: person_map._id,
-          name: person_map.name
-        };
-
-        if (chatee && chatee.id === make_person_map.id) {
-          is_chatee_online = true;
-        }
-
-        makePerson(make_person_map);
-      });
-
-      stateMap.people_db.sort('name');
-
-      if (chatee && !is_chatee_online) {
-        set_chatee('');
-      }
     };
 
     _publish_listchange = function(arg_list) {
@@ -242,7 +243,7 @@ spa.model = (function() {
       }
 
       $.gevent.publish('spa-updatechat', [msg_map]);
-    }
+    };
 
     _leave_chat = function() {
       var sio = isFakeData ? spa.fake.mockSio : spa.data.getSio();
@@ -282,7 +283,7 @@ spa.model = (function() {
 
     send_msg = function(msg_text) {
       var msg_map,
-          sio = isFakeData ? spa.fake.mockSio : spa.data.getSio();
+        sio = isFakeData ? spa.fake.mockSio : spa.data.getSio();
 
       if (!sio) {
         return false;
@@ -352,7 +353,7 @@ spa.model = (function() {
     });
 
     stateMap.user = stateMap.anon_user;
-  }
+  };
 
   return {
     initModule: initModule,

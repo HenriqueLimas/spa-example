@@ -7,7 +7,7 @@
 * {
   margin: 0;
   padding: 0;
-  -web-kit-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
   -mox-box-sizing: border-box;
   box-sizing: border-box;
 }
@@ -18,6 +18,31 @@ h1, h2, h3, h4, h5, h6, p {
 
 ol, ul, dl {
   list-style-position: inside;
+}
+
+* {
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: -moz-none;
+  -o-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+
+  -webkit-user-drag: none;
+  -moz-user-drag: none;
+  user-drag: none;
+
+  -webkit-tab-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+input, textarea, .spa-x-user-select {
+  -webkit-user-select: text;
+  -kthml-user-select: text;
+  -moz-user-select: text;
+  -o-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
 }
 /** End reset */
 

@@ -222,7 +222,7 @@ spa.shell = (function() {
 
     onClickChat = function(event) {
       changeAnchorPart({
-        chat: (stateMap.is_chat_retracted ? 'open' : 'closed')
+        chat: (stateMap.is_chat_retracted ? 'opened' : 'closed')
       });
       return false;
     };
