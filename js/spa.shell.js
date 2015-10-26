@@ -27,9 +27,11 @@ spa.shell = (function() {
       },
       main_html: String()
         + '<header class="spa-shell-head">'
-          + '<div class="spa-shell-head-logo"></div>'
+          + '<div class="spa-shell-head-logo">'
+            + '<h1>SPA</h1>'
+            + '<p>javascript end to end</p>'
+          +'</div>'
           + '<div class="spa-shell-head-acct"></div>'
-          + '<div class="spa-shell-head-search"></div>'
         + '</header>'
 
         + '<main class="spa-shell-main">'
@@ -53,6 +55,9 @@ spa.shell = (function() {
     changeAnchorPart,
     setChatAnchor,
     onHashchange,
+    onTapAcct,
+    onLogin,
+    onLogout,
     onClickChat,
     onResize,
     initModule;
@@ -64,10 +69,34 @@ spa.shell = (function() {
     setJqueryMap = function() {
       var $container = stateMap.$container;
       jqueryMap = {
-        $container: $container
+        $container: $container,
+        $acct: $container.find('.spa-shell-head-acct'),
+        $nav: $container.find('.spa-shell-main-nav')
       };
     };
 
+    onTapAcct = function(event) {
+      var acct_text, user_name,
+          user = spa.model.people.get_user();
+
+      if (user.get_is_anon()) {
+        user_name = prompt('Please sign-in');
+        spa.model.people.login(user_name);
+        jqueryMap.$acct.text('...processing...');
+      } else {
+        spa.model.people.logout();
+      }
+
+      return false;
+    };
+
+    onLogin = function(event, login_user) {
+      jqueryMap.$acct.text(login_user.name);
+    };
+
+    onLogout = function() {
+      jqueryMap.$acct.text('Please sign-in');
+    };
     // Begin DOM method /changeAnchorPart/
     // Purpose : Changes part of the URI anchor component
     // Arguments:
@@ -218,6 +247,13 @@ spa.shell = (function() {
         .bind('resize', onResize)
         .bind('hashchange', onHashchange)
         .trigger('hashchange');
+
+      $.gevent.subscribe($container, 'spa-login', onLogin);
+      $.gevent.subscribe($container, 'spa-logout', onLogout);
+
+      jqueryMap.$acct
+        .text('Please sign-in')
+        .bind('utap', onTapAcct);
     };
 
     return {
