@@ -281,7 +281,7 @@ spa.model = (function() {
 
     send_msg = function(msg_text) {
       var msg_map,
-          sio = isFakeData ? sap.fake.mockSio : spa.data.getSio();
+          sio = isFakeData ? spa.fake.mockSio : spa.data.getSio();
 
       if (!sio) {
         return false;
