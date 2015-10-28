@@ -11,7 +11,7 @@
 
 /*global $, spa */
 
-spa.chat = (function() {
+spa.avtr = (function() {
   'use strict';
 
   var configMap = {
@@ -155,7 +155,7 @@ spa.chat = (function() {
   };
 
   onSetchatee = function(event, arg_map) {
-    var $nav,
+    var $nav = $(this),
         new_chatee = arg_map.new_chatee,
         old_chatee = arg_map.old_chatee;
 
@@ -176,7 +176,7 @@ spa.chat = (function() {
     var $nav = $(this),
         people_db = configMap.people_model.get_db(),
         user = configMap.people_model.get_user(),
-        chatee = configMap.chat_mode.get_chatee() || {},
+        chatee = configMap.chat_model.get_chatee() || {},
         $box;
 
     $nav.empty();
@@ -206,7 +206,7 @@ spa.chat = (function() {
         .addClass(class_list.join(' '))
         .css(person.css_map)
         .attr('data-id', String(person.id))
-        .prop('title', spa.util_b.encondeHtml(person.name))
+        .prop('title', spa.util_b.encodeHtml(person.name))
         .text(person.name)
         .appendTo($nav);
     });

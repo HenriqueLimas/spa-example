@@ -16,6 +16,7 @@
   text-overflow: ellipsis;
   border-radius: 4px;
   text-align: center;
+  z-index: 1;
 }
   .spa-avtr-box.spa-x-is-user {
     border-color: #44f;
