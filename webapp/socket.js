@@ -33,7 +33,9 @@ setWatch = function(url_path, file_type) {
       function(current, previous) {
         console.log('file acessed');
         console.log(current.mtime, previous.mtime);
+
         if (current.mtime.toString() !== previous.mtime.toString()) {
+          console.log('file changed');
           io.sockets.emit(file_type, url_path);
         }
       }
