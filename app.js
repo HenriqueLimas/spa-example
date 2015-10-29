@@ -12,6 +12,7 @@ white : true
 
 var http = require('http');
 var express = require('express');
+var routes = require('./routes');
 var server,
     app;
 
@@ -39,9 +40,7 @@ app.configure('production', function() {
   app.use(express.errorHandler());
 });
 
-app.get('/', (request, response) => {
-  response.redirect('/spa.html');
-});
+routes.configRoutes(app, server);
 // -------- END SERVER CONFIGURATION ----------
 
 server.listen(3000);
