@@ -1,5 +1,5 @@
 /*
- * app.js - Hello World
+ * app.js - Express server with routing
  */
 /*jslint node : true, continue : true,
 devel : true, indent : 2, maxerr : 50,
@@ -7,12 +7,12 @@ newcap : true, nomen : true, plusplus : true,
 regexp : true, sloppy : true, vars : false,
 white : true
 */
-/*global */
+
 'use strict';
 
 var http = require('http');
 var express = require('express');
-var routes = require('./routes');
+var routes = require('./lib/routes');
 var server,
     app;
 
