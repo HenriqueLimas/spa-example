@@ -1,0 +1,38 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "_id": {
+      "type": "string",
+      "minLength": 25,
+      "maxLength": 25
+    },
+    "name": {
+      "type": "string",
+      "maxLength": 127,
+      "minLength": 2
+    },
+    "is_online": {
+      "type": "boolean"
+    },
+    "css_map": {
+      "type": "object",
+      "properties": {
+        "background-color": {
+          "type": "string",
+          "required": true,
+          "minLength": 0,
+          "maxLength": 25
+        },
+        "top": {
+          "type": "integer",
+          "required": true
+        },
+        "left": {
+          "type": "integer",
+          "required": true
+        }
+      }
+    }
+  }
+}
