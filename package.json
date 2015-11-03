@@ -3,9 +3,10 @@
   "version": "0.0.3",
   "private": true,
   "dependencies": {
+    "JSV": "4.0.x",
     "express": "3.2.x",
     "mongodb": "^2.0.47",
-    "socket.io": "0.9.x",
-    "JSV": "4.0.x"
+    "redis": "^2.3.0",
+    "socket.io": "0.9.x"
   }
 }
