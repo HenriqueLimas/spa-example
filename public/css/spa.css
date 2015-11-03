@@ -79,7 +79,7 @@ strong {
   right: 0;
   background: #fff;
   min-height: 15em;
-  min-width: 35em;
+  min-width: 20em;
   overflow: hidden;
 }
 /** End spa namespace selectors */
